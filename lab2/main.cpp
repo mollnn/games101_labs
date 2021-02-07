@@ -28,10 +28,43 @@ Eigen::Matrix4f get_model_matrix(float rotation_angle)
     return model;
 }
 
-Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
+Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
+                                      float zNear, float zFar)
 {
-    // TODO: Copy-paste your implementation from the previous assignment.
-    Eigen::Matrix4f projection;
+    // Students will implement this function
+
+    Eigen::Matrix4f projection = Eigen::Matrix4f::Identity();
+
+    // TODO: Implement this function
+    // Create the projection matrix for the given parameters.
+    // Then return it.
+
+    Eigen::Matrix4f persp2ortho = Eigen::Matrix4f::Identity();
+    persp2ortho << zNear, 0, 0, 0,
+        0, zNear, 0, 0,
+        0, 0, zNear + zFar, -zFar * zNear,
+        0, 0, 1, 0;
+
+    float half_rad = eye_fov * 0.5 / 180 * MY_PI;
+    float box_top = zNear * tan(half_rad);
+    float box_bottom = -box_top;
+    float box_right = box_top * aspect_ratio;
+    float box_left = -box_right;
+
+    Eigen::Matrix4f ortho_scale = Eigen::Matrix4f::Identity();
+    ortho_scale << 2.0 / (box_right - box_left), 0, 0, 0,
+        0, 2.0 / (box_top - box_bottom), 0, 0,
+        0, 0, 2 / (zNear - zFar), 0,
+        0, 0, 0, 1;
+
+    Eigen::Matrix4f ortho_trans = Eigen::Matrix4f::Identity();
+    ortho_trans << 1, 0, 0, -(box_left + box_right) / 2,
+        0, 1, 0, -(box_top + box_bottom) / 2,
+        0, 0, 1, -(zNear + zFar) / 2,
+        0, 0, 0, 1;
+
+    Eigen::Matrix4f ortho = ortho_scale * ortho_trans;
+    projection = ortho * persp2ortho;
 
     return projection;
 }
@@ -48,7 +81,7 @@ int main(int argc, const char** argv)
         filename = std::string(argv[1]);
     }
 
-    rst::rasterizer r(700, 700);
+    rst::rasterizer r(400, 400);
 
     Eigen::Vector3f eye_pos = {0,0,5};
 
@@ -95,7 +128,7 @@ int main(int argc, const char** argv)
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
         r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
-        cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(400, 400, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
@@ -114,7 +147,7 @@ int main(int argc, const char** argv)
 
         r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
 
-        cv::Mat image(700, 700, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(400, 400, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
         cv::imshow("image", image);

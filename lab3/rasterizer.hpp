@@ -76,6 +76,7 @@ namespace rst
         void set_fragment_shader(std::function<Eigen::Vector3f(fragment_shader_payload)> frag_shader);
 
         void set_pixel(const Vector2i &point, const Eigen::Vector3f &color);
+        void get_pixel(const Vector2i &point, Eigen::Vector3f &color);
 
         void clear(Buffers buff);
 

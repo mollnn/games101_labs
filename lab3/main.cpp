@@ -114,7 +114,8 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
     Eigen::Vector3f return_color = {0, 0, 0};
     if (payload.texture)
     {
-        // TODO: Get the texture value at the texture coordinates of the current fragment
+        // Get the texture value at the texture coordinates of the current fragment
+        return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -142,6 +143,20 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular*
         // components are. Then, accumulate that result on the *result_color* object.
+        Eigen::Vector3f light_dir = light.position - point;
+        Eigen::Vector3f view_dir = eye_pos - point;
+        float r = light_dir.dot(light_dir);
+        // ambient
+        Eigen::Vector3f La = ka.cwiseProduct(amb_light_intensity);
+        // diffuse
+        Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r);
+        Ld *= std::max(0.0f, normal.normalized().dot(light_dir.normalized()));
+        // specular
+        Eigen::Vector3f h = (light_dir + view_dir).normalized();
+        Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r);
+        Ls *= std::pow(std::max(0.0f, normal.normalized().dot(h)), p);
+
+        result_color += (La + Ld + Ls);
     }
 
     return result_color * 255.f;
@@ -292,12 +307,14 @@ int main(int argc, const char **argv)
         }
     }
 
-    rst::rasterizer r(512, 512);
+    rst::rasterizer r(256, 256);
 
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
-    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
+    std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = texture_fragment_shader;
+    texture_path = "spot_texture.png";
+    r.set_texture(Texture(obj_path + texture_path));
 
     if (argc >= 2)
     {
@@ -349,7 +366,7 @@ int main(int argc, const char **argv)
         r.set_projection(get_projection_matrix(45.0, 1, 0.1, 50));
 
         r.draw(TriangleList);
-        cv::Mat image(512, 512, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(256, 256, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
@@ -368,7 +385,7 @@ int main(int argc, const char **argv)
 
         //r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
         r.draw(TriangleList);
-        cv::Mat image(512, 512, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(256, 256, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 

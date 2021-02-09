@@ -152,7 +152,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload &payload)
         Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r);
         Ld *= std::max(0.0f, normal.normalized().dot(light_dir.normalized()));
         // specular
-        Eigen::Vector3f h = (light_dir + view_dir).normalized();
+        Eigen::Vector3f h = (light_dir.normalized() + view_dir.normalized()).normalized();
         Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r);
         Ls *= std::pow(std::max(0.0f, normal.normalized().dot(h)), p);
 
@@ -189,7 +189,7 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload &payload)
         float r = light_dir.dot(light_dir);
         Eigen::Vector3f La = ka.cwiseProduct(amb_light_intensity);
         Eigen::Vector3f Ld = kd.cwiseProduct(light.intensity / r) * std::max(0.0f, normal.normalized().dot(light_dir.normalized()));
-        Eigen::Vector3f h = (light_dir + view_dir).normalized();
+        Eigen::Vector3f h = (light_dir.normalized() + view_dir.normalized()).normalized();
         Eigen::Vector3f Ls = ks.cwiseProduct(light.intensity / r) * std::pow(std::max(0.0f, normal.normalized().dot(h)), p);
         result_color += (La + Ld + Ls);
     }

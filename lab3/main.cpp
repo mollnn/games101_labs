@@ -307,7 +307,7 @@ int main(int argc, const char **argv)
         }
     }
 
-    rst::rasterizer r(256, 256);
+    rst::rasterizer r(512, 512);
 
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
@@ -366,7 +366,7 @@ int main(int argc, const char **argv)
         r.set_projection(get_projection_matrix(45.0, 1, 0.1, 50));
 
         r.draw(TriangleList);
-        cv::Mat image(256, 256, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(512, 512, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
@@ -378,14 +378,14 @@ int main(int argc, const char **argv)
     while (key != 27)
     {
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
-
+        angle += 2;
         r.set_model(get_model_matrix(angle));
         r.set_view(get_view_matrix(eye_pos));
         r.set_projection(get_projection_matrix(45.0, 1, 0.1, 50));
 
         //r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);
         r.draw(TriangleList);
-        cv::Mat image(256, 256, CV_32FC3, r.frame_buffer().data());
+        cv::Mat image(512, 512, CV_32FC3, r.frame_buffer().data());
         image.convertTo(image, CV_8UC3, 1.0f);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 

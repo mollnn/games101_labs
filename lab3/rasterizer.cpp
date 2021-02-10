@@ -270,6 +270,11 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
     int min_y = std::floor(std::min(v[0][1], std::min(v[1][1], v[2][1])));
     int max_y = std::ceil(std::max(v[0][1], std::max(v[1][1], v[2][1])));
 
+    min_x = std::max(min_x, 0);
+    max_x = std::min(max_x, width - 1);
+    min_y = std::max(min_y, 0);
+    max_y = std::min(max_y, height - 1);
+
     std::vector<Eigen::Vector2f> subpixel_pos{{0, 0}};
 
     // iterate through the pixel and find if the current pixel is inside the triangle
@@ -278,6 +283,11 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
     {
         for (int y = min_y; y <= max_y; y++)
         {
+            assert(x >= 0);
+            assert(y >= 0);
+            assert(x < width - 1);
+            assert(y < height - 1);
+
             float min_depth = __FLT_MAX__;
             int succ_count = 0;
 
@@ -315,7 +325,6 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
                     depth_buf[get_index(x, y)] = min_depth;
                     Eigen::Vector2i tmp_point;
                     tmp_point << x, y;
-                    get_pixel(tmp_point, color_origin);
                     auto color = color_add;
                     set_pixel(tmp_point, color);
                 }

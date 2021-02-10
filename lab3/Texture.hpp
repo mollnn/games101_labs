@@ -33,6 +33,10 @@ public:
             v = 0;
         if (v > 1)
             v = 1;
+        if (!(0 <= u && u <= 1))
+            u = 0;
+        if (!(0 <= v && v <= 1))
+            v = 0;
         auto u_img = u * width;
         auto v_img = (1 - v) * height;
         auto color = image_data.at<cv::Vec3b>(v_img, u_img);

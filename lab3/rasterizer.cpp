@@ -283,13 +283,7 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
     {
         for (int y = min_y; y <= max_y; y++)
         {
-            assert(x >= 0);
-            assert(y >= 0);
-            assert(x < width - 1);
-            assert(y < height - 1);
-
             float min_depth = __FLT_MAX__;
-            int succ_count = 0;
 
             // 颜色缓冲区
             Eigen::Vector3f color_add(0, 0, 0);
@@ -302,11 +296,9 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
                 auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
                 float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-
                 z_interpolated *= w_reciprocal;
                 // Update
                 min_depth = std::min(min_depth, z_interpolated);
-                succ_count++;
                 // 对颜色、法线、纹理坐标计算线性插值
                 auto interpolated_color = interpolate(alpha, beta, gamma, t.color[0], t.color[1], t.color[2], 1);
                 auto interpolated_normal = interpolate(alpha, beta, gamma, t.normal[0], t.normal[1], t.normal[2], 1).normalized();
@@ -317,9 +309,6 @@ void rst::rasterizer::rasterize_triangle(const Triangle &t, const std::array<Eig
                 payload.view_pos = interpolated_shadingcoords;
                 auto pixel_color = fragment_shader(payload);
                 color_add += pixel_color;
-            }
-            if (succ_count)
-            {
                 if (depth_buf[get_index(x, y)] > min_depth)
                 {
                     depth_buf[get_index(x, y)] = min_depth;
